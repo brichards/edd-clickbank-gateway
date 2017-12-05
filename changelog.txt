@@ -1,3 +1,6 @@
+=Version 1.3.1, December 5, 2017=
+* Fixed: Clickbank orders were coming back as $0 transactions with no products attached.
+
 =Version 1.3.0, June 20, 2017=
 * Altered ClickBank checkout process to leverage EDD's core "buy now" functionality for all ClickBank products. This eliminates the hard requirement to disable EDD's AJAX add-to-cart functionality, a setting that was removed in EDD 2.7.0.
 
