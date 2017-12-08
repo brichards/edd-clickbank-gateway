@@ -339,6 +339,7 @@ final class EDD_ClickBank_Gateway {
 		// Only save the item ID if it's not already set for another post
 		if ( ! empty( $item ) && false === self::get_edd_product_id( $item ) ) {
 			$clickbank_items[ $post_id ] = $item;
+			edd_debug_log( 'ClickBank metabox saved/updated. Item value submitted: ' . $item . '. Array of Clickbank items is now: . ' . json_encode( $clickbank_items ) );
 		}else{
 			edd_debug_log( 'ClickBank metabox not saved/updated. Item value submitted: ' . $item . '. Array of pre-existing Clickbank items is: . ' . json_encode( $clickbank_items ) );
 		}
@@ -361,9 +362,7 @@ final class EDD_ClickBank_Gateway {
 		$accurate_clickbank_items = array();
 
 		// Extract the post ids only
-		foreach( $inaccurate_clickbank_items as $post_id => $clickbank_item ) {
-			$clickbank_post_ids[] = $post_id;
-		}
+		$clickbank_post_ids = array_keys( $inaccurate_clickbank_items );
 
 		// Query the database for payments which have clickbank items attached. By doing it as a query, we make sure the data is always accurate, and factors in deleted products, etc.
 		$query_args = array(
@@ -382,11 +381,20 @@ final class EDD_ClickBank_Gateway {
 
 				$this_post_id = get_the_ID();
 
-
-				// Rebuild the clickbank array
-				$accurate_clickbank_items[$this_post_id] = $inaccurate_clickbank_items[$this_post_id];
+				if ( isset( $inaccurate_clickbank_items[$this_post_id] ) && ! empty( $inaccurate_clickbank_items[$this_post_id] ) ){
+					// Rebuild the clickbank array
+					$accurate_clickbank_items[$this_post_id] = $inaccurate_clickbank_items[$this_post_id];
+				}
 
 			endwhile;
+		}
+
+		// Reset the post data after doing the above custom query
+		wp_reset_postdata();
+
+		// If something went wrong, don't make any changes
+		if ( empty( $accurate_clickbank_items ) ) {
+			$accurate_clickbank_items = $inaccurate_clickbank_items;
 		}
 
 		return $accurate_clickbank_items;
