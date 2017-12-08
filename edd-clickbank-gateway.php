@@ -361,36 +361,22 @@ final class EDD_ClickBank_Gateway {
 		$clickbank_post_ids = array();
 		$accurate_clickbank_items = array();
 
-		// Extract the post ids only
-		$clickbank_post_ids = array_keys( $inaccurate_clickbank_items );
+		// Loop through each innacurate clickbank EDD Product to make sure it wasn't deleted
+		foreach( $inaccurate_clickbank_items as $post_id => $clickbank_item_number ) {
 
-		// Query the database for payments which have clickbank items attached. By doing it as a query, we make sure the data is always accurate, and factors in deleted products, etc.
-		$query_args = array(
-			'post_type' => "download",
-			'posts_per_page' => -1,
-			'post__in' => $clickbank_post_ids
-		);
+			$post = new EDD_Download( $post_id );
 
-		//Create new query for stacks
-		$clickbank_product_query = new WP_Query( $query_args );
+			// If this product doesn't exist, don't add it to the list of accurate clickbank products
+			if ( ! $post->ID ) {
+				continue;
+			}
 
-		//Loop through the posts returned by the query
-		if ( $clickbank_product_query->have_posts() ) {
+			// If this post still exists and it has a valid value saved for clickbank, re-add it
+			if ( isset( $inaccurate_clickbank_items[$post_id] ) && ! empty( $inaccurate_clickbank_items[$post_id] ) ) {
+				$accurate_clickbank_items[$post_id] = $inaccurate_clickbank_items[$post_id];
+			}
 
-			while( $clickbank_product_query->have_posts() ) : $clickbank_product_query->the_post();
-
-				$this_post_id = get_the_ID();
-
-				if ( isset( $inaccurate_clickbank_items[$this_post_id] ) && ! empty( $inaccurate_clickbank_items[$this_post_id] ) ){
-					// Rebuild the clickbank array
-					$accurate_clickbank_items[$this_post_id] = $inaccurate_clickbank_items[$this_post_id];
-				}
-
-			endwhile;
 		}
-
-		// Reset the post data after doing the above custom query
-		wp_reset_postdata();
 
 		// If something went wrong, don't make any changes
 		if ( empty( $accurate_clickbank_items ) ) {
