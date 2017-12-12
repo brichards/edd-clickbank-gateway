@@ -339,6 +339,9 @@ final class EDD_ClickBank_Gateway {
 		// Only save the item ID if it's not already set for another post
 		if ( ! empty( $item ) && false === self::get_edd_product_id( $item ) ) {
 			$clickbank_items[ $post_id ] = $item;
+			edd_debug_log( 'ClickBank metabox saved/updated. Item value submitted: ' . $item . '. Array of Clickbank items is now: . ' . json_encode( $clickbank_items ) );
+		}else{
+			edd_debug_log( 'ClickBank metabox not saved/updated. Item value submitted: ' . $item . '. Array of pre-existing Clickbank items is: . ' . json_encode( $clickbank_items ) );
 		}
 
 		// Delete setting for this post if we no longer have an item ID
@@ -350,7 +353,37 @@ final class EDD_ClickBank_Gateway {
 	}
 
 	private static function get_clickbank_items() {
-		return get_option( self::$clickbank_option, array() );
+
+		// Get the clickbank items that have been saved to the wp_option
+		$inaccurate_clickbank_items = get_option( self::$clickbank_option, array() );
+
+		// Set the arrays up that we will use to rebuild an accurate list of clickbank products
+		$clickbank_post_ids = array();
+		$accurate_clickbank_items = array();
+
+		// Loop through each innacurate clickbank EDD Product to make sure it wasn't deleted
+		foreach( $inaccurate_clickbank_items as $post_id => $clickbank_item_number ) {
+
+			$post = new EDD_Download( $post_id );
+
+			// If this product doesn't exist, don't add it to the list of accurate clickbank products
+			if ( ! $post->ID ) {
+				continue;
+			}
+
+			// If this post still exists and it has a valid value saved for clickbank, re-add it
+			if ( isset( $inaccurate_clickbank_items[$post_id] ) && ! empty( $inaccurate_clickbank_items[$post_id] ) ) {
+				$accurate_clickbank_items[$post_id] = $inaccurate_clickbank_items[$post_id];
+			}
+
+		}
+
+		// If something went wrong, don't make any changes
+		if ( empty( $accurate_clickbank_items ) ) {
+			$accurate_clickbank_items = $inaccurate_clickbank_items;
+		}
+
+		return $accurate_clickbank_items;
 	}
 
 	private static function set_clickbank_items( $clickbank_items = array() ) {
