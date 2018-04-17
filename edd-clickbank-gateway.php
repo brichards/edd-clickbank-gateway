@@ -229,12 +229,15 @@ final class EDD_ClickBank_Gateway {
 			// Find which EDD Payment corresponds to this clickbank data
 			$payment_id = self::get_used_key(  $_GET['cbpop']  );
 
-			$payment = new EDD_Payment( $payment_id );
+			// If a payment was found
+			if ( $payment_id ) {
+				$payment = new EDD_Payment( $payment_id );
 
-			// Set up the EDD purchase session. This makes the edd_receipt shortcode know what to show
-			edd_set_purchase_session( $purchase_data = array(
-				'purchase_key' => $payment->key
-			) );
+				// Set up the EDD purchase session. This makes the edd_receipt shortcode know what to show
+				edd_set_purchase_session( $purchase_data = array(
+					'purchase_key' => $payment->key
+				) );
+			}
 		}
 	}
 
