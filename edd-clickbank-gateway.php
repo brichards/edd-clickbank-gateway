@@ -281,6 +281,12 @@ final class EDD_ClickBank_Gateway {
 					$payment->status = 'complete';
 					$payment->save();
 					edd_empty_cart();
+
+					// Set the payment session before redirecting
+					edd_set_purchase_session( $purchase_data = array(
+						'purchase_key' => $payment->key
+					) );
+
 					wp_redirect( add_query_arg( 'payment_key', $payment->key, edd_get_success_page_uri() ) ); exit;
 				}
 			}
