@@ -41,6 +41,7 @@ final class EDD_ClickBank_Gateway {
 		add_filter( 'edd_straight_to_gateway_purchase_data', array( $this, 'edd_straight_to_gateway_purchase_data' ) );
 		add_action( 'edd_gateway_ClickBank', array( $this, 'edd_gateway_ClickBank' ) );
 		add_action( 'init',                  array( $this, 'clickbank_process_payment' ) );
+		add_action( 'init',                  array( $this, 'process_clickbank_purchase_confirmation_url' ) );
 	}
 
 	/**
@@ -215,6 +216,32 @@ final class EDD_ClickBank_Gateway {
 	}
 
 	/**
+	 * When customers are redirected back to the EDD site from Clickbank, we need to set up the purchase session to match their URL variables
+	 *
+	 * @since  1.3.1
+	 */
+	public function process_clickbank_purchase_confirmation_url() {
+
+		// This is an example of the URL we are trying to "catch" here:
+		// https://thisedddmain.com/checkout/purchase-confirmation/?item=1&cbreceipt=SW6VAK6K&time=1523474665&cbpop=7EB02C28&cbaffi=0&cname=Test+Test&cemail=customer@customer.com&ccountry=US&czip=12345
+		if ( isset( $_GET['cbreceipt'] ) && isset( $_GET['cbpop'] ) && isset( $_GET['cbaffi'] ) && isset( $_GET['cname'] ) && isset( $_GET['cemail'] ) && isset( $_GET['cemail'] ) ) {
+
+			// Find which EDD Payment corresponds to this clickbank data
+			$payment_id = self::get_used_key(  $_GET['cbpop']  );
+
+			// If a payment was found
+			if ( $payment_id ) {
+				$payment = new EDD_Payment( $payment_id );
+
+				// Set up the EDD purchase session. This makes the edd_receipt shortcode know what to show
+				edd_set_purchase_session( $purchase_data = array(
+					'purchase_key' => $payment->key
+				) );
+			}
+		}
+	}
+
+	/**
 	 * Process payment for clickbank gateway.
 	 */
 	public function clickbank_process_payment() {
@@ -254,6 +281,12 @@ final class EDD_ClickBank_Gateway {
 					$payment->status = 'complete';
 					$payment->save();
 					edd_empty_cart();
+
+					// Set the payment session before redirecting
+					edd_set_purchase_session( $purchase_data = array(
+						'purchase_key' => $payment->key
+					) );
+
 					wp_redirect( add_query_arg( 'payment_key', $payment->key, edd_get_success_page_uri() ) ); exit;
 				}
 			}
