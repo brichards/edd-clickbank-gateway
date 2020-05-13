@@ -1,4 +1,4 @@
-=Version 1.3.2, May 3, 2020=
+=Version 1.3.2, May 13, 2020=
 * Fixed: Purchase confirmation page was not properly resolving.
 * Fixed: Deleted products were not properly handled.
 
