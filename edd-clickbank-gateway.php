@@ -3,9 +3,9 @@
  * Plugin Name: Easy Digital Downloads - ClickBank Gateway
  * Plugin URI:  https://easydigitaldownloads.com/extension/clickbank-gateway
  * Description: ClickBank gateway extension for Easy Digital Downloads.
- * Version:     1.3.1
- * Author:      Brian Richards
- * Author URI:  http://www.rzen.net
+ * Version:     1.3.2
+ * Author:      Sandhills Development, LLC
+ * Author URI:  https://sandhillsdev.com
  * Text Domain: edd-clickbank-gateway
  * Domain Path: /languages/
  */
@@ -28,9 +28,14 @@ final class EDD_ClickBank_Gateway {
 			$license = new EDD_License(
 				__FILE__,
 				'EDD ClickBank Gateway',
-				'1.3.1',
-				'Brian Richards'
+				'1.3.2',
+				'Sandhills Development, LLC',
+				null,
+				null,
+				39237
 			);
+
+			unset( $license );
 		}
 
 		add_filter( 'edd_settings_gateways', array( $this, 'clickbank_settings' ) );
